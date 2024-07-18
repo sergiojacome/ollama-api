@@ -1,17 +1,13 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 import ollama
 
 app = FastAPI()
 
-@app.get("/")
-async def root():
-    return {"message": "Ollama API is running"}
+class PromptRequest(BaseModel):
+    prompt: str
 
 @app.post("/generate")
-async def generate_text(prompt: str):
-    response = ollama.generate(model='llama2', prompt=prompt)
+async def generate_text(request: PromptRequest):
+    response = ollama.generate(model='llama2', prompt=request.prompt)
     return {"generated_text": response['response']}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=10000)

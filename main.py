@@ -1,30 +1,23 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
-import httpx
+from transformers import pipeline
 
 app = FastAPI()
 
 class PromptRequest(BaseModel):
     prompt: str
 
-API_URL = "https://api-inference.huggingface.co/models/gpt2"
-API_TOKEN = "tu_token_de_api_aqui"  # Reemplaza esto con tu token real
-
-headers = {"Authorization": f"Bearer {API_TOKEN}"}
+# Inicializa el generador de texto
+generator = pipeline('text-generation', model='distilgpt2')
 
 @app.get("/")
 async def root():
-    return {"message": "Hugging Face API is running"}
+    return {"message": "Local text generation API is running"}
 
 @app.post("/generate")
 async def generate_text(request: PromptRequest):
-    async with httpx.AsyncClient() as client:
-        response = await client.post(API_URL, headers=headers, json={"inputs": request.prompt})
-    
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Error from Hugging Face API")
-    
-    return {"generated_text": response.json()[0]["generated_text"]}
+    result = generator(request.prompt, max_length=50, num_return_sequences=1)
+    return {"generated_text": result[0]['generated_text']}
 
 if __name__ == "__main__":
     import uvicorn

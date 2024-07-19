@@ -13,17 +13,17 @@ RUN apt-get update && apt-get install -y \
 # Clonar Ollama
 RUN git clone https://github.com/jmorganca/ollama.git
 
-# Instalar Go (necesario para Ollama)
-RUN curl -OL https://golang.org/dl/go1.16.7.linux-amd64.tar.gz \
-    && tar -C /usr/local -xzf go1.16.7.linux-amd64.tar.gz \
-    && rm go1.16.7.linux-amd64.tar.gz
+# Instalar Go 1.22
+RUN curl -OL https://go.dev/dl/go1.22.0.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz \
+    && rm go1.22.0.linux-amd64.tar.gz
 
 # Añadir Go al PATH
 ENV PATH=$PATH:/usr/local/go/bin
 
 # Compilar Ollama
 WORKDIR /app/ollama
-RUN go build
+RUN go version && go build
 
 # Volver al directorio de trabajo principal
 WORKDIR /app

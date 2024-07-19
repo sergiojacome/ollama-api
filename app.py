@@ -1,29 +1,38 @@
+import subprocess
+import time
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import subprocess
-import os
 
 app = FastAPI()
 
 class PromptRequest(BaseModel):
     prompt: str
 
+# Iniciar Ollama como un proceso separado
+ollama_process = subprocess.Popen(["/app/ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+# Esperar a que Ollama se inicie completamente
+time.sleep(10)  # Ajusta este tiempo según sea necesario
+
+@app.get("/")
+async def root():
+    return {"message": "Ollama API is running"}
+
 @app.post("/generate")
 async def generate_text(request: PromptRequest):
     try:
-        # Inicia el servidor Ollama si no está en ejecución
-        subprocess.Popen(["/app/ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        
-        # Ejecuta el comando Ollama
         result = subprocess.run(
             ["/app/ollama", "run", "distilbert", request.prompt],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
+            timeout=30  # Añadir un timeout para evitar bloqueos
         )
         return {"generated_text": result.stdout.strip()}
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Error al generar texto: {e.stderr}")
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="Timeout al generar texto")
 
 if __name__ == "__main__":
     import uvicorn

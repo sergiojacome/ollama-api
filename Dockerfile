@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Descargar Ollama pre-compilado
-RUN curl -L https://github.com/jmorganca/ollama/releases/download/v0.1.27/ollama-linux-amd64 -o ollama \
+# Descargar Ollama pre-compilado (versión más reciente)
+RUN curl -L https://github.com/jmorganca/ollama/releases/latest/download/ollama-linux-amd64 -o ollama \
     && chmod +x ollama
 
 # Copiar los archivos de la aplicación

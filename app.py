@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import subprocess
-import json
+import os
 
 app = FastAPI()
 
@@ -11,8 +11,12 @@ class PromptRequest(BaseModel):
 @app.post("/generate")
 async def generate_text(request: PromptRequest):
     try:
+        # Inicia el servidor Ollama si no está en ejecución
+        subprocess.Popen(["/app/ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Ejecuta el comando Ollama
         result = subprocess.run(
-            ["/app/ollama/ollama", "run", "distilbert", request.prompt],
+            ["/app/ollama", "run", "distilbert", request.prompt],
             capture_output=True,
             text=True,
             check=True

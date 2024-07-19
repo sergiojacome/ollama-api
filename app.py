@@ -14,6 +14,14 @@ ollama_process = subprocess.Popen(["/app/ollama", "serve"], stdout=subprocess.PI
 # Esperar a que Ollama se inicie completamente
 time.sleep(10)  # Ajusta este tiempo según sea necesario
 
+# Descargar el modelo (esto puede tardar un tiempo)
+try:
+    subprocess.run(["/app/ollama", "pull", "orca-mini"], check=True, timeout=600)
+except subprocess.CalledProcessError as e:
+    print(f"Error al descargar el modelo: {e}")
+except subprocess.TimeoutExpired:
+    print("Timeout al descargar el modelo")
+
 @app.get("/")
 async def root():
     return {"message": "Ollama API is running"}
@@ -22,11 +30,11 @@ async def root():
 async def generate_text(request: PromptRequest):
     try:
         result = subprocess.run(
-            ["/app/ollama", "run", "distilbert", request.prompt],
+            ["/app/ollama", "run", "orca-mini", request.prompt],
             capture_output=True,
             text=True,
             check=True,
-            timeout=30  # Añadir un timeout para evitar bloqueos
+            timeout=60  # Aumentar el timeout para dar más tiempo a la generación
         )
         return {"generated_text": result.stdout.strip()}
     except subprocess.CalledProcessError as e:
